@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="apple-touch-icon" sizes="76x76" href="{{ url_for('static', filename='img/apple-icon.png') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <title>
+    BiasedBot
+  </title>
+  <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
+  <!--     Fonts and icons     -->
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
+  <!-- CSS Files -->
+  <link href="{{ url_for('static', filename='css/material-kit.css') }}" rel="stylesheet" />
+  <link href="{{ url_for('static', filename='css/css.css') }}" rel="stylesheet" />
+  <!-- CSS Just for demo purpose, don't include it in your project -->
+  <!-- <link href="./assets/demo/demo.css" rel="stylesheet" /> -->
+
+  <script src="{{ url_for('static', filename='js/webcam.min.js') }}" type="text/javascript"></script>
+  <!--<script type="text/javascript" src="../webcam.min.js"></script>-->
+
+  <script type="text/javascript">
+    var sampleImagePath = "static/img/faces/christian.jpg";
+    var imageID = "imageView"
+    var cur_img = null;
+
+    function switchImg(img) {
+      var imgView = document.getElementById("imageView");
+      imgView.src = img;
+    }
+
+    function resetImg() {
+      console.log("Resetting image");
+      // Display the sampleImage again
+      switchImg(sampleImagePath);
+    }
+
+    function uploadImg(input) {
+      console.log("Uploading image");
+      // Let user pick image form computer
+      // Set image in the imageID thing
+      if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+              switchImg(e.target.result);
+            };
+
+            reader.readAsDataURL(input.files[0]);
+            cur_img = input.files[0];
+            console.log(cur_img);
+        }
+    }
+
+    async function analyze() {
+      console.log("Sending image");
+      var formData = new FormData();
+      formData.append("photo", cur_img);
+
+      var form_data = new FormData();
+      form_data.append("photo", cur_img);
+      $.ajax({
+          type: 'POST',
+          url: '/analyze',
+          data: form_data,
+          contentType: false,
+          cache: false,
+          processData: false,
+          success: function(data) {
+              console.log('Success!');
+              console.log("Got data: " + data);
+              document.getElementById("trustscore").innerHTML = "Trustworthiness Score: " + data;
+          },
+      });
+    }
+
+    function useWebcam() {
+    	Webcam.set({
+			width: 500,
+			height: 500,
+			image_format: 'jpeg',
+			jpeg_quality: 90
+		});
+		Webcam.attach( '#my_camera' );
+    	document.getElementById("my_camera").style.display = "block";
+    	document.getElementById("imageView").style.display = "none";
+    }
+
+    function take_snapshot() {
+		// take snapshot and get image data
+		Webcam.snap( function(data_uri) {
+			// display results in page
+			switchImg(data_uri);
+			document.getElementById("my_camera").style.display = "none";
+    		document.getElementById("imageView").style.display = "block";
+
+    		cur_img = dataURItoBlob(data_uri);
+			//document.getElementById('imageView').innerHTML = '<h2>Here is your image:</h2>' + '<img src="'+data_uri+'"/>';
+		});
+	}
+
+	function dataURItoBlob(dataURI) {
+	    // convert base64/URLEncoded data component to raw binary data held in a string
+	    var byteString;
+	    if (dataURI.split(',')[0].indexOf('base64') >= 0)
+	        byteString = atob(dataURI.split(',')[1]);
+	    else
+	        byteString = unescape(dataURI.split(',')[1]);
+
+	    // separate out the mime component
+	    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+
+	    // write the bytes of the string to a typed array
+	    var ia = new Uint8Array(byteString.length);
+	    for (var i = 0; i < byteString.length; i++) {
+	        ia[i] = byteString.charCodeAt(i);
+	    }
+
+	    return new Blob([ia], {type:mimeString});
+	}
+  </script>
+</head>
+
+<body class="index-page sidebar-collapse">
+  <nav class="navbar navbar-transparent navbar-color-on-scroll fixed-top navbar-expand-lg" color-on-scroll="100" id="sectionsNav">
+    <div class="container">
+      <div class="navbar-translate">
+        <a class="navbar-brand" href="https://demos.creative-tim.com/material-kit/index.html">
+            <i class="material-icons">face</i> BiasedBot </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+      </div>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="javascript:void(0)" onclick="scrollToModel()">
+              <i class="material-icons">bubble_chart</i> Model
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="javascript:void(0)" onclick="scrollToHow()">
+              <i class="material-icons">info</i> How it works
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="javascript:void(0)" onclick="scrollToAbout()">
+              <i class="material-icons">group</i> About us
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="javascript:void(0)" onclick="scrollToReferences()">
+              <i class="material-icons">library_books</i> Acknowledgements
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div id="home" class="page-header header-filter clear-filter purple-filter" data-parallax="true" style="background-image: url('{{ url_for('static', filename='img/peoplecrossing.jpg') }}');">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8 ml-auto mr-auto">
+          <div class="brand">
+            <h1>Trustworthiness calculator</h1>
+            <h3>This page calculates your perceived trustworthiness using deep learning. Try it below!</h3>
+          </div>
+        </div>
+      </div>
+        
+    </div>
+  </div>
+  <div id="model" class="main main-first main-raised">
+    <div class="section section-basic">
+      <div class="container">
+          <!-- Main part -->
+          <div class="row">
+              <div class="col-md-12 ml-auto mr-auto">
+              <!-- Tabs with icons on Card -->
+                  <div class="card card-nav-tabs">
+                    <div class="card-header card-header-primary">
+                      
+                      <div class="nav-tabs-navigation">
+                        <div class="nav-tabs-wrapper text-center">
+                          <ul class="nav nav-tabs" data-tabs="tabs">
+                            <li class="nav-item">
+                              <a class="nav-link active" href="#regression" data-toggle="tab">
+                                <i class="material-icons">face</i> Rate yourself!
+                              </a>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card-body ">
+                      <div class="tab-content">
+                        <div class="tab-pane active" id="regression">
+                            <div class="text-center">
+                                <div class="row">
+                                    <div class="col-xl-8 ml-auto mr-auto">
+                                        <div class="row center-align"><img src="{{ url_for('static', filename='img/faces/christian.jpg') }}" class="rounded" class="text-center" style="width: 500px; height: 500px;" alt="..." id="imageView">
+                                        	<div id="my_camera" style="display: none"></div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                          <button class="btn btn-primary btn-link" onClick=resetImg()><i class="material-icons"> cached</i> Reset to sample image</button>
+                                        
+                                          <label class="btn btn-primary btn-link">
+                                              <i class="material-icons">add_photo_alternate</i> Upload image<input type="file" onchange="uploadImg(this)" id="filepicker" style="display: none;"  name="image">
+                                          </label>
+                                          
+                                          <button class="btn btn-primary btn-round" onClick=analyze()>Analyze image! <i class="material-icons">arrow_forward</i></button>
+
+                                          <button class="btn btn-primary" onClick=useWebcam()><i class="material-icons">camera</i> Take photo using webcam!</button>
+
+                                          <button class="btn btn-primary" onClick="take_snapshot()"><i class="material-icons">add_a_photo</i> Take snapshot!</button>
+                                      </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h3 id="trustscore">Trustworthiness Score: 0</h3>
+                            <!-- <p>You may find the regression analysis outcome below.</p> -->
+                        </div>
+                      </div>
+                    </div>
+                  </div>  
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+    <div class="section section-basic section-intro">
+        <div class="container">
+            <div class="title">
+              <h2>Introduction</h2>
+            </div>
+            <div>
+                Face perception is central to social cognition and provides a wealth of information including facial identities, situational information and social categorization (Hugenberg & Wilson, 2013). Knowing this information prior to interacting with someone else is beneficial for selecting interaction partners, establishing social control and affiliation (Kleinke, 1986) and otherwise help interactions go smoothly.<br><br>
+
+                However, facial structures have been shown to have powerful influences on discrimination, evaluations and social judgments (Blair, Judd & Chapleau, 2004; Wilson & Rule, 2015; Todd, Thiem & Neel, 2016). As Olivola, Funk & Todorov (2014) put it: “...individuals who possess particular facial characteristics are more likely to experience desirable outcomes (e.g., winning an election) or avoid undesirable outcomes (e.g., being convicted of a crime) than are their peers who lack these facial attributes.”<br><br>
+
+                This face perception bias effect can be hard to overcome since the bias can be embedded deeply within the brain. Ito and Urland (2003) showed that test subjects covertly check for race and gender within a few hundred milliseconds of seeing a target image, long before any conscious decision can be made.<br><br>
+
+                However, providing people a simple piece of countervailing information may already result in complete reversal of some implicit facial evaluations (Cone, Mann & Ferguson, 2017). Additionally, becoming aware of one’s implicit, subconscious evaluations may help in the conscious decision stage that follows.
+            </div>
+        </div>     
+    </div>
+
+    <div class="section section-basic section-dataset">
+        <div class="container">
+            <div class="title">
+              <h2>Biased datasets</h2>
+            </div>
+            <div>
+                Biases (conscious or unconscious) held by people can leak into datasets that are created or compiled by humans. This is a big issue with datasets used by e.g. current crime prediction algorithms (Angwin, Larson, Mattu & Kirchner, 2016; Flores, Bechtel & Lowenkamp, 2016).<br><br>
+
+                Even queries in more ordinary, everyday algorithms or data sources show bias. Caliskan, Brysan and Naranayan (2017) found that training a model on a standard body of text from the web resulted in a model that was more likely to associate European-sounding names with positive descriptions, whereas the opposite was true for African-American-sounding names. In another example, the first international beauty contest judged by machines (Beauty.ai) showed a clear preferential bias towards lighter-skinned people (Levin, 2016).<br><br>
+
+                Although the importance of unbiased data seems apparent, the 2018 Design for AI Report shows that the issue is not recognized as such by researchers and developers in the field; biased data was one of the least known factors related to machine learning, or categorized as one of the least important factors (Philosophie, 2018).
+            </div>
+        </div>     
+    </div>
+
+    <div class="section section-basic section-how">
+        <div class="container">
+            <div class="title">
+              <h2>How it works</h2>
+            </div>
+            <div class="title">
+              <h3>Data preparation</h3>
+            </div>
+            <div>
+              Two datasets, Chicago Face Database (CFD) and MR2 were combined for this project.<br><br>
+
+              The data from the CFD and MR2 are very similar, but not the same. In the CDF, the faces are rated on “attractive”, “happy”, “masculine” and “trustworthy”, while in the MR2 faces are rated on “attractiveness”, “mood”, “masculinity” and “trustworthiness”. Both were rated on a 7-point Likert scale. They were assumed to be comparable in meaning, even though the questions on the survey were phrased differently.<br><br>
+
+              Before processing, images were cropped and resized to a smaller size to save computation time. A size of 500x500 was used in the final version.<br><br>
+                        
+              After the images were resized, the faces were aligned so that facial features are in the same location in each image. The eyes are put at the same height, and distance from each other using code adapted from Rosebrock’s (2017) face alignment code.
+            </div>
+            <div class="title">
+              <h3>Dataset information</h3>
+            </div>
+            <div>
+                Some information about the trustworthiness values in the CFD.<br><br>
+                <ul>
+                  <li>Number of samples: 671</li>
+                  <li>Mean value: 3.48</li>
+                  <li>Standard Deviation: 0.45</li>
+                  <li>Minimum value: 2.30</li>
+                  <li>Minimum value: 4.98</li>
+                </ul>
+            </div>
+            <div class="title">
+              <h3>Software</h3>
+            </div>
+            <div>
+                Tensorflow was used to train the model, mostly because of it's proven track record and size of the available documentation. Tensorflow is also supported by Javascript. This means Tensorflow models can now be coded, trained and run within web browsers. Although the training performance of Tensorflow.js compared to the standard Tensorflow implementation is various degrees slower, the ability to run pre-trained models within a user’s browser is an interesting step forward. Tensorflow.js thus allows us to let other people use and experiment with the model; this is especially useful given the aim of this research to make (many) people aware of their bias.
+            </div>
+        </div>     
+    </div>
+    
+    <!-- <div class="section section-basic section-about">
+        <div class="container">
+            <div class="title">
+              <h2>About us</h2>
+            </div>
+            <div>
+                Courtesy of Bram de Vogel, Cédric Baillet, Bas Ravoo, Jacob Pihl, Teo Raunio.
+            </div>
+        </div>     
+    </div> -->
+    
+    <div class="section section-basic section-future">
+        <div class="container">
+            <div class="title">
+              <h2>Future</h2>
+            </div>
+            <div class="title">
+              <h3>More parameters</h3>
+            </div>
+            <div>
+                Upgrade the site to rate a photo based on all parameters from the dataset, e.g “attractive”, “happy”, “masculine” and “trustworthy” and maybe age.
+            </div>
+            <div class="title">
+              <h3>Image generation (Synthesis)</h3>
+            </div>
+            <div>
+                Users can pick a value of a perceived character trait and see what a trained model thinks the average person with these character traits looks like. For example, input 80% trustworthiness and 20% attractiveness and see how the network visually generalizes these perceptions.<br><br>
+
+                Example:<br>
+                <img src="{{ url_for('static', filename='img/image3.png') }}" style="max-width: 500px;">
+            </div>
+        </div>     
+    </div>
+
+    <div class="section section-basic section-references">
+        <div class="container">
+            <div class="title">
+              <h2>References</h2>
+            </div>
+            <div>
+              References are listed in order of appearance.<br><br>
+                <ul>
+                  <li>Hugenberg, K., & Wilson, J. P. (2013). Faces are central to social cognition. Handbook of social cognition, 167-193.</li>
+                  <li>Kleinke, C. L. (1986). Gaze and eye contact: a research review. Psychological bulletin, 100(1), 78.</li>
+                  <li>Blair, I. V., Judd, C. M., & Chapleau, K. M. (2004). The influence of Afrocentric facial features in criminal sentencing. Psychological science, 15(10), 674-679.</li>
+                  <li>Hugenberg, K., & Wilson, J. P. (2013). Faces are central to social cognition. Handbook of social cognition, 167-193.</li>
+                  <li>Wilson, J. P., & Rule, N. O. (2015). Facial trustworthiness predicts extreme criminal-sentencing outcomes. Psychological science, 26(8), 1325-1331.</li>
+                  <li>Todd, A. R., Thiem, K. C., & Neel, R. (2016). Does seeing faces of young black boys facilitate the identification of threatening stimuli?. Psychological science, 27(3), 384-393.</li>
+                  <li>Olivola, C. Y., Funk, F., & Todorov, A. (2014). Social attributions from faces bias human choices. Trends in Cognitive Sciences, 18(11), 566-570.</li>
+                  <li>Ito, T. A., & Urland, G. R. (2003). Race and gender on the brain: electrocortical measures of attention to the race and gender of multiply categorizable individuals. Journal of personality and social psychology, 85(4), 616.</li>
+                  <li>Cone, J., Mann, T. C., & Ferguson, M. J. (2017). Changing our implicit minds: How, when, and why implicit evaluations can be rapidly revised. In Advances in Experimental Social Psychology (Vol. 56, pp. 131-199). Academic Press.</li>
+                  <li>Angwin, J., Larson, J., Mattu, S., & Kirchner, L. (2016). Machine bias: There’s software used across the country to predict future criminals. and it’s biased against blacks. ProPublica, May, 23.</li>
+                  <li>Flores, A. W., Bechtel, K., & Lowenkamp, C. T. (2016). False Positives, False Negatives, and False Analyses: A Rejoinder to Machine Bias: There's Software Used across the Country to Predict Future Criminals. And It's Biased against Blacks. Fed. Probation, 80, 38.</li>
+                  <li>Caliskan, A., Bryson, J. J., & Narayanan, A. (2017). Semantics derived automatically from language corpora contain human-like biases. Science, 356(6334), 183-186.</li>
+                  <li>Levin, S. (2016). A beauty contest was judged by AI and the robots didn’t like dark skin. The Guardian.</li>
+                  <li>Philosophie. (2018, April 5). 2018 Design for AI Report. Retrieved June 18, 2018, from https://philosophie.is/design-for-ai-report-2018</li>
+                  <li>Rosebrock, A (2017). Face Alignment [source code]. Retrieved from: https://www.pyimagesearch.com/2017/05/22/face-alignment-with-opencv-and-python/</li>
+                </ul>
+            </div>
+        </div>     
+    </div>
+    
+        
+   
+  <!--   Core JS Files   -->
+  <script src="{{ url_for('static', filename='js/core/jquery.min.js') }}" type="text/javascript"></script>
+  <script src="{{ url_for('static', filename='js/core/popper.min.js') }}" type="text/javascript"></script>
+  <script src="{{ url_for('static', filename='js/core/bootstrap-material-design.min.js') }}" type="text/javascript"></script>
+  <script src="{{ url_for('static', filename='js/plugins/moment.min.js') }}"></script>
+  <!--	Plugin for the Datepicker, full documentation here: https://github.com/Eonasdan/bootstrap-datetimepicker -->
+  <script src="{{ url_for('static', filename='js/plugins/bootstrap-datetimepicker.js') }}" type="text/javascript"></script>
+  <!--  Plugin for the Sliders, full documentation here: http://refreshless.com/nouislider/ -->
+  <script src="{{ url_for('static', filename='js/plugins/nouislider.min.js') }}" type="text/javascript"></script>
+  <!-- Control Center for Now Ui Kit: parallax effects, scripts for the example pages etc -->
+  <script src="{{ url_for('static', filename='js/material-kit.js') }}" type="text/javascript"></script>
+  <script>
+    $(document).ready(function() {
+      //init DateTimePickers
+      materialKit.initFormExtendedDatetimepickers();
+    });
+
+
+    function scrollToDownload() {
+      if ($('.section-download').length != 0) {
+        $("html, body").animate({
+          scrollTop: $('.section-download').offset().top
+        }, 1000);
+      };
+    };
+      
+    function scrollToHow() {
+      if ($('.section-how').length != 0) {
+        $("html, body").animate({
+          scrollTop: $('.section-how').offset().top
+        }, 1000);
+      };
+    };
+      
+    function scrollToAbout() {
+      if ($('.section-about').length != 0) {
+        $("html, body").animate({
+          scrollTop: $('.section-about').offset().top
+        }, 1000);
+      };
+    };
+      
+    function scrollToReferences() {
+      if ($('.section-references').length != 0) {
+        $("html, body").animate({
+          scrollTop: $('.section-references').offset().top
+        }, 1000);
+      };
+    };
+    
+    function scrollToModel() {
+      if ($('.page-header').length != 0) {
+        $("html, body").animate({
+          scrollTop: $('#model').offset().top
+        }, 1000);
+      }
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,15 @@
+tensorflow
+
+numpy
+
+Jinja2
+
+Flask
+
+futures
+
+gunicorn
+
+scipy
+
+Pillow==5.1.0

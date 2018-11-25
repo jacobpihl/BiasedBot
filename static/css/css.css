@@ -1,0 +1,9 @@
+body > div.main.main-raised.main-first {
+    background-color: transparent; 
+    box-shadow: none; !important
+}
+
+.center-align {
+    display: flex;
+    align-items: center;
+}
