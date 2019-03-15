@@ -3,9 +3,9 @@ import numpy as np
 import cv2
 import os
 
-IMAGE_PATH = "./train_images/"
+IMAGE_PATH = "./test_images/"
 BACKGROUND_PATH = "./backgrounds/"
-SAVE_PATH = "./augmented_train_images/"
+SAVE_PATH = "./augmented_test_images/"
 
 
 def getAttr(filename):
@@ -83,10 +83,10 @@ if __name__ == "__main__":
 	c = 0	# For appending a number at the end of each augmented image
 
 	rawData = pd.read_csv('ratings.csv')
-	mFile = open("train_labels.txt", "w")
+	mFile = open("test_labels.txt", "w")
 
 	print("Starting")
-	for face in os.listdir("./train_images/"):
+	for face in os.listdir(IMAGE_PATH):
 		c = 0
 
 		# Add original image
@@ -95,7 +95,7 @@ if __name__ == "__main__":
 			cv2.imwrite(SAVE_PATH + face, im)
 			mFile.write(face + "," + str(getAttr(face)) + "," + str(getMood(face)) + "," + str(getTrust(face)) + "," + str(getMasc(face)) + "," + str(getAge(face)) + "\n")
 
-		for bg in os.listdir("./backgrounds/"):
+		for bg in os.listdir(BACKGROUND_PATH):
 			if face.endswith(".png") and bg.endswith(".png"):
 				# Augment background
 				aug_img = augment(face, bg)

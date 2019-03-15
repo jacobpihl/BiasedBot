@@ -23,83 +23,89 @@
   <!--<script type="text/javascript" src="../webcam.min.js"></script>-->
 
   <script type="text/javascript">
-    var sampleImagePath = "static/img/faces/christian.jpg";
-    var imageID = "imageView"
-    var cur_img = null;
+  var sampleImagePath = "static/img/faces/christian.jpg";
+  var imageID = "imageView"
+  var cur_img = null;
+  var analysing = false;
 
-    function switchImg(img) {
-      var imgView = document.getElementById("imageView");
-      imgView.src = img;
+  function switchImg(img) {
+    var imgView = document.getElementById("imageView");
+    imgView.src = img;
+  }
+
+  function resetImg() {
+    console.log("Resetting image");
+    // Display the sampleImage again
+    switchImg(sampleImagePath);
+  }
+
+  function uploadImg(input) {
+    console.log("Uploading image");
+    // Let user pick image form computer
+    // Set image in the imageID thing
+    if (input.files && input.files[0]) {
+      var reader = new FileReader();
+
+      reader.onload = function (e) {
+        switchImg(e.target.result);
+      };
+
+      reader.readAsDataURL(input.files[0]);
+      cur_img = input.files[0];
+      console.log(cur_img);
     }
+  }
 
-    function resetImg() {
-      console.log("Resetting image");
-      // Display the sampleImage again
-      switchImg(sampleImagePath);
+  async function analyze() {
+    if(analysing) {
+      return;
     }
+    console.log("Sending image");
+    // var formData = new FormData();
+    // formData.append("photo", cur_img);
 
-    function uploadImg(input) {
-      console.log("Uploading image");
-      // Let user pick image form computer
-      // Set image in the imageID thing
-      if (input.files && input.files[0]) {
-            var reader = new FileReader();
+    var form_data = new FormData();
+    form_data.append("photo", cur_img);
+    $.ajax({
+      type: 'POST',
+      url: '/analyze',
+      data: form_data,
+      contentType: false,
+      cache: false,
+      processData: false,
+      success: function(data) {
+          console.log('Success!');
+          console.log("Got data: " + data);
+          document.getElementById("trustscore").innerHTML = "Trustworthiness Score: " + data;
+          analysing = false;
+      },
+    });
+    analysing = true;
+  }
 
-            reader.onload = function (e) {
-              switchImg(e.target.result);
-            };
+  function useWebcam() {
+    Webcam.set({
+  		width: 500,
+  		height: 500,
+  		image_format: 'jpeg',
+      jpeg_quality: 90
+    });
+    Webcam.attach( '#my_camera' );
+    document.getElementById("my_camera").style.display = "block";
+    document.getElementById("imageView").style.display = "none";
+  }
 
-            reader.readAsDataURL(input.files[0]);
-            cur_img = input.files[0];
-            console.log(cur_img);
-        }
-    }
+  function take_snapshot() {
+  		// take snapshot and get image data
+  	Webcam.snap( function(data_uri) {
+  		// display results in page
+  		switchImg(data_uri);
+  		document.getElementById("my_camera").style.display = "none";
+   		document.getElementById("imageView").style.display = "block";
 
-    async function analyze() {
-      console.log("Sending image");
-      var formData = new FormData();
-      formData.append("photo", cur_img);
-
-      var form_data = new FormData();
-      form_data.append("photo", cur_img);
-      $.ajax({
-          type: 'POST',
-          url: '/analyze',
-          data: form_data,
-          contentType: false,
-          cache: false,
-          processData: false,
-          success: function(data) {
-              console.log('Success!');
-              console.log("Got data: " + data);
-              document.getElementById("trustscore").innerHTML = "Trustworthiness Score: " + data;
-          },
-      });
-    }
-
-    function useWebcam() {
-    	Webcam.set({
-			width: 500,
-			height: 500,
-			image_format: 'jpeg',
-			jpeg_quality: 90
-		});
-		Webcam.attach( '#my_camera' );
-    	document.getElementById("my_camera").style.display = "block";
-    	document.getElementById("imageView").style.display = "none";
-    }
-
-    function take_snapshot() {
-		// take snapshot and get image data
-		Webcam.snap( function(data_uri) {
-			// display results in page
-			switchImg(data_uri);
-			document.getElementById("my_camera").style.display = "none";
-    		document.getElementById("imageView").style.display = "block";
-
-    		cur_img = dataURItoBlob(data_uri);
-			//document.getElementById('imageView').innerHTML = '<h2>Here is your image:</h2>' + '<img src="'+data_uri+'"/>';
-		});
+   		cur_img = dataURItoBlob(data_uri);
+  		//document.getElementById('imageView').innerHTML = '<h2>Here is your image:</h2>' + '<img src="'+data_uri+'"/>';
+  	});
 	}
 
 	function dataURItoBlob(dataURI) {
